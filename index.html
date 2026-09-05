@@ -1,0 +1,655 @@
+<meta charset="utf-8">
+<title>321Smash</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#F4F6F2; --surface:#FFFFFF; --surface2:#EDF1EB;
+    --ink:#18241E; --muted:#5C6B62; --line:#DFE5DE;
+    --accent:#1E6B4F; --accent-ink:#FFFFFF; --accent-soft:#E2EFE8;
+    --wait:#8A6508; --wait-bg:#F6EDCC;
+    --play:#1E6B4F; --play-bg:#DFEEE6;
+    --done:#5C6B62; --done-bg:#E7EAE6;
+    --danger:#B3402E; --danger-bg:#F6E2DD;
+    --shadow:0 1px 3px rgba(24,36,30,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#101613; --surface:#1A211C; --surface2:#141B17;
+      --ink:#E8EDE8; --muted:#93A198; --line:#2A332D;
+      --accent:#3FA37C; --accent-ink:#0C120F; --accent-soft:#20332A;
+      --wait:#D9BC2E; --wait-bg:#2E2A14;
+      --play:#4FB68C; --play-bg:#1C2F26;
+      --done:#93A198; --done-bg:#232A25;
+      --danger:#D96B57; --danger-bg:#33201B;
+      --shadow:0 1px 3px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#101613; --surface:#1A211C; --surface2:#141B17;
+    --ink:#E8EDE8; --muted:#93A198; --line:#2A332D;
+    --accent:#3FA37C; --accent-ink:#0C120F; --accent-soft:#20332A;
+    --wait:#D9BC2E; --wait-bg:#2E2A14;
+    --play:#4FB68C; --play-bg:#1C2F26;
+    --done:#93A198; --done-bg:#232A25;
+    --danger:#D96B57; --danger-bg:#33201B;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Sarabun',-apple-system,'Segoe UI',sans-serif; font-size:16px; line-height:1.45;
+  }
+  h1,h2,h3,.num,.tabbtn{font-family:'Kanit','Sarabun',sans-serif}
+  .num{font-variant-numeric:tabular-nums}
+  button{font:inherit; cursor:pointer; border:none; border-radius:10px; background:var(--surface2); color:var(--ink); padding:10px 14px}
+  button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button.primary{background:var(--accent); color:var(--accent-ink); font-weight:600}
+  button.danger{background:var(--danger-bg); color:var(--danger); font-weight:600}
+  button.ghost{background:transparent; border:1px solid var(--line)}
+  button:disabled{opacity:.45; cursor:default}
+  input,select,textarea{
+    font:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:10px 12px; width:100%;
+  }
+  label{display:block; font-size:13px; font-weight:600; color:var(--muted); margin:12px 0 4px; letter-spacing:.02em}
+
+  header{
+    position:sticky; top:0; z-index:10; background:var(--accent); color:var(--accent-ink);
+    padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  header h1{margin:0; font-size:19px; font-weight:600; letter-spacing:.01em}
+  header .sub{font-size:12px; opacity:.85}
+  header .tot{text-align:right}
+  header .tot .num{font-size:19px; font-weight:600}
+
+  main{padding:14px 14px calc(84px + env(safe-area-inset-bottom)); max-width:640px; margin:0 auto}
+
+  nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:10;
+    background:var(--surface); border-top:1px solid var(--line);
+    display:flex; padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tabbtn{
+    flex:1; background:none; border-radius:0; padding:10px 0 12px; color:var(--muted);
+    font-size:13px; font-weight:500; display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .tabbtn svg{width:22px; height:22px}
+  .tabbtn.on{color:var(--accent)}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 8px; font-size:16px; font-weight:600}
+  .row{display:flex; align-items:center; gap:10px}
+  .row .grow{flex:1; min-width:0}
+  .between{justify-content:space-between}
+
+  .pill{display:inline-block; font-size:12px; font-weight:700; padding:2px 9px; border-radius:99px; letter-spacing:.03em}
+  .pill.wait{background:var(--wait-bg); color:var(--wait)}
+  .pill.play{background:var(--play-bg); color:var(--play)}
+  .pill.done{background:var(--done-bg); color:var(--done)}
+  .pill.owed{background:var(--danger-bg); color:var(--danger)}
+  .pill.paid{background:var(--play-bg); color:var(--play)}
+  .lv{display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:6px; background:var(--surface2); color:var(--muted); white-space:nowrap}
+
+  .court{border-left:5px solid var(--line)}
+  .court.playing{border-left-color:var(--play)}
+  .teams{display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; margin:10px 0}
+  .team{background:var(--surface2); border-radius:10px; padding:8px 10px}
+  .team .p{font-weight:600; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .vs{font-family:'Kanit'; font-weight:600; color:var(--muted); font-size:13px}
+
+  .plist{display:flex; flex-direction:column; gap:8px}
+  .prow{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .pname{font-weight:600; font-size:16px}
+  .pmeta{font-size:12.5px; color:var(--muted)}
+
+  .modal-bg{position:fixed; inset:0; background:rgba(10,15,12,.55); z-index:20; display:flex; align-items:flex-end; justify-content:center}
+  .modal{
+    background:var(--surface); width:100%; max-width:640px; max-height:88vh; overflow:auto;
+    border-radius:18px 18px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+  }
+  .modal h2{margin:0 0 4px; font-size:19px; font-weight:600}
+  .mact{display:flex; gap:10px; margin-top:18px}
+  .mact button{flex:1; padding:13px}
+
+  .empty{text-align:center; color:var(--muted); padding:36px 20px}
+  .empty .big{font-size:40px; margin-bottom:8px}
+  .statgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px}
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px}
+  .stat .num{font-size:22px; font-weight:600}
+  .stat .lbl{font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.03em}
+  .pickrow{display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--line)}
+  .pickrow input[type=checkbox]{width:20px; height:20px; accent-color:var(--accent); flex:none}
+  .secttl{font-family:'Kanit'; font-size:13px; font-weight:600; color:var(--muted); letter-spacing:.02em; margin:18px 0 8px}
+  .money-owed{color:var(--danger); font-weight:700}
+  .money-paid{color:var(--play); font-weight:700}
+  .switch{display:flex; align-items:center; gap:10px; margin:12px 0}
+  .switch input{width:20px; height:20px; accent-color:var(--accent)}
+  .note{font-size:13px; color:var(--muted)}
+  @media (prefers-reduced-motion: no-preference){
+    .modal{animation:up .18s ease-out}
+    @keyframes up{from{transform:translateY(30px); opacity:.6}to{transform:none; opacity:1}}
+  }
+</style>
+
+<header>
+  <div>
+    <h1>321Smash</h1>
+    <div class="sub" id="hd-sub">ยังไม่เปิดก๊วน</div>
+  </div>
+  <div class="tot" id="hd-tot"></div>
+</header>
+<main id="main"></main>
+<nav id="nav"></nav>
+<div id="modal-root"></div>
+
+<script>
+'use strict';
+/* ---------- constants ---------- */
+const LS_KEY = 'shuttle-ledger-v1';
+const LEVELS = [
+  {t:'มือใหม่', w:1}, {t:'หน้าบ้าน', w:2}, {t:'N', w:3}, {t:'S', w:4},
+  {t:'P-', w:5}, {t:'P', w:6}, {t:'P+', w:7}, {t:'C', w:8}, {t:'B', w:9}, {t:'A', w:10}
+];
+const BAHT = '฿';
+
+/* ---------- state ---------- */
+let state = load() || {
+  settings: {entryFee:60, matchFee:20},
+  roster: [],            // {id,name,level,partnerId,serious,note}
+  session: null,         // see startSession()
+  history: []            // {date, players, matches, collected, outstanding}
+};
+let tab = 'courts';
+
+function load(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)); }catch(e){ return null; }
+}
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return BAHT + Number(n).toLocaleString('th-TH'); }
+function player(id){ return state.roster.find(p=>p.id===id); }
+function lvTag(p){ const L=LEVELS[p.level]||LEVELS[0]; return `<span class="lv">${esc(L.t)}</span>`; }
+function lvW(p){ return (LEVELS[p.level]||LEVELS[0]).w; }
+
+/* ---------- session ---------- */
+function startSession(courtCount, entryFee, matchFee){
+  state.settings.entryFee = entryFee;
+  state.settings.matchFee = matchFee;
+  state.session = {
+    startedAt: new Date().toISOString(),
+    courts: Array.from({length:courtCount}, (_,i)=>({id:uid(), name:'คอร์ท '+(i+1), match:null})),
+    att: {},          // pid -> {matches,status,paid,order,extra:0}
+    nextOrder: 1,
+    log: []           // {courtName, a:[..names], b:[..names], score, endedAt}
+  };
+  save(); render();
+}
+function attList(){ const s=state.session; return s? Object.keys(s.att) : []; }
+function att(pid){ return state.session.att[pid]; }
+function waiting(){
+  return attList().filter(id=>att(id).status==='waiting')
+    .sort((x,y)=> (att(x).matches - att(y).matches) || (att(x).order - att(y).order));
+}
+function billOf(pid){
+  const a = att(pid);
+  return state.settings.entryFee + (a.matches + (a.extra||0)) * state.settings.matchFee;
+}
+function collectedTotal(){
+  return attList().filter(id=>att(id).paid).reduce((s,id)=>s+billOf(id),0);
+}
+function outstandingTotal(){
+  return attList().filter(id=>!att(id).paid).reduce((s,id)=>s+billOf(id),0);
+}
+
+/* ---------- matchmaking ---------- */
+function suggestFour(){
+  const w = waiting();
+  if(w.length < 4) return null;
+  const pool = w.slice(0, 10);
+  let best=null, bestScore=Infinity;
+  const n = pool.length;
+  for(let a=0;a<n;a++) for(let b=a+1;b<n;b++) for(let c=b+1;c<n;c++) for(let d=c+1;d<n;d++){
+    const ids=[pool[a],pool[b],pool[c],pool[d]];
+    const s = scoreFour(ids, [a,b,c,d], pool);
+    if(s < bestScore){ bestScore=s; best=ids; }
+  }
+  return best;
+}
+function scoreFour(ids, idxs, pool){
+  const ps = ids.map(player);
+  const ws = ps.map(lvW);
+  let score = idxs.reduce((s,i)=>s+i, 0) * 2.5;               // queue fairness
+  const spread = Math.max(...ws) - Math.min(...ws);
+  const serious = ps.some(p=>p.serious);
+  score += spread * (serious ? 8 : 3);                        // level closeness
+  score += bestSplit(ids).penalty * 3;                        // 2v2 balance + partner prefs
+  for(const p of ps){                                          // partner-preference pull
+    if(p.partnerId){
+      const inMatch = ids.includes(p.partnerId);
+      const isWaiting = pool.includes(p.partnerId);
+      if(inMatch) score -= 7;
+      else if(isWaiting) score += 5;
+    }
+  }
+  return score;
+}
+function bestSplit(ids){
+  const splits = [[[0,1],[2,3]], [[0,2],[1,3]], [[0,3],[1,2]]];
+  let best=null;
+  for(const [ai,bi] of splits){
+    const A=ai.map(i=>ids[i]), B=bi.map(i=>ids[i]);
+    const wA=A.reduce((s,id)=>s+lvW(player(id)),0), wB=B.reduce((s,id)=>s+lvW(player(id)),0);
+    let pen = Math.abs(wA-wB);
+    for(const id of ids){
+      const pd = player(id).partnerId;
+      if(pd && ids.includes(pd)){
+        const sameTeam = (A.includes(id)&&A.includes(pd)) || (B.includes(id)&&B.includes(pd));
+        if(!sameTeam) pen += 50;
+      }
+    }
+    if(!best || pen < best.penalty) best={a:A, b:B, penalty:pen};
+  }
+  return best;
+}
+
+/* ---------- render ---------- */
+function render(){
+  renderHeader(); renderNav();
+  const m = document.getElementById('main');
+  if(!state.session && tab!=='setup'){ m.innerHTML = viewNoSession(); return; }
+  m.innerHTML = tab==='courts'? viewCourts() : tab==='players'? viewPlayers() : tab==='money'? viewMoney() : viewSetup();
+}
+function renderHeader(){
+  const sub = document.getElementById('hd-sub'), tot = document.getElementById('hd-tot');
+  if(state.session){
+    const d = new Date(state.session.startedAt);
+    const playing = attList().filter(id=>att(id).status==='playing').length;
+    sub.textContent = d.toLocaleDateString('th-TH',{day:'numeric',month:'short'}) + ' · ' +
+      attList().length + ' คน · เล่นอยู่ ' + playing;
+    tot.innerHTML = `<div class="sub">เก็บแล้ว</div><div class="num">${money(collectedTotal())}</div>`;
+  }else{
+    sub.textContent = 'ยังไม่เปิดก๊วน'; tot.innerHTML='';
+  }
+}
+const ICONS = {
+  courts:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="1"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
+  players:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5S13.9 16 14.5 19"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 19c.4-2.2 1.6-3.4 3.5-3.6"/></svg>',
+  money:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.5 9.8c0-1 1-1.8 2.5-1.8s2.5.8 2.5 1.8-1 1.6-2.5 1.9-2.5.9-2.5 1.9 1 1.8 2.5 1.8 2.5-.8 2.5-1.8"/></svg>',
+  setup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.14-1.4l2-1.55-2-3.46-2.35.95A7 7 0 0 0 14.1 5.1L13.75 2.6h-3.5L9.9 5.1a7 7 0 0 0-2.41 1.44l-2.35-.95-2 3.46 2 1.55A7 7 0 0 0 5 12c0 .48.05.94.14 1.4l-2 1.55 2 3.46 2.35-.95a7 7 0 0 0 2.41 1.44l.35 2.5h3.5l.35-2.5a7 7 0 0 0 2.41-1.44l2.35.95 2-3.46-2-1.55c.09-.46.14-.92.14-1.4Z"/></svg>'
+};
+const TABS = {courts:'คอร์ท', players:'ผู้เล่น', money:'เงิน', setup:'ตั้งค่า'};
+function renderNav(){
+  document.getElementById('nav').innerHTML = ['courts','players','money','setup'].map(t=>
+    `<button class="tabbtn ${tab===t?'on':''}" onclick="setTab('${t}')">${ICONS[t]}${TABS[t]}</button>`
+  ).join('');
+}
+function setTab(t){ tab=t; render(); }
+
+/* ---------- views ---------- */
+function viewNoSession(){
+  return `<div class="empty"><div class="big">🏸</div>
+    <h2 style="margin:0 0 6px">พร้อมเปิดก๊วนวันนี้หรือยัง?</h2>
+    <p class="note">เปิดก๊วนก่อน แล้วค่อยเช็คอินผู้เล่นทีละคนตอนมาถึง</p>
+    <button class="primary" style="padding:14px 28px; font-size:17px" onclick="openStartSession()">เปิดก๊วน</button>
+  </div>
+  ${state.history.length ? `<div class="secttl">ก๊วนที่ผ่านมา</div>` + state.history.slice().reverse().map(h=>
+    `<div class="card row between"><div><b>${esc(h.date)}</b><div class="pmeta">${h.players} คน · ${h.matches} เกม</div></div>
+     <div class="num" style="text-align:right">${money(h.collected)}${h.outstanding?`<div class="pmeta money-owed">ค้าง ${money(h.outstanding)}</div>`:''}</div></div>`).join('') : ''}`;
+}
+
+function viewCourts(){
+  const s = state.session;
+  const w = waiting();
+  let html = `<div class="row between" style="margin-bottom:10px">
+    <div class="note">รอคิว <b class="num">${w.length}</b> คน${w.length? ' — คิวถัดไป: '+esc(player(w[0]).name):''}</div>
+    <button class="ghost" onclick="addCourt()">+ เพิ่มคอร์ท</button></div>`;
+  html += s.courts.map(c=>{
+    if(c.match){
+      const m=c.match, mins=Math.max(0, Math.round((Date.now()-new Date(m.startedAt))/60000));
+      const team = ids=>`<div class="team">${ids.map(id=>{const p=player(id);return `<div class="p">${esc(p.name)} ${lvTag(p)}</div>`}).join('')}</div>`;
+      return `<div class="card court playing">
+        <div class="row between"><h3>${esc(c.name)}</h3><span class="pill play">กำลังเล่น · ${mins} นาที</span></div>
+        <div class="teams">${team(m.a)}<div class="vs">VS</div>${team(m.b)}</div>
+        <div class="row"><button class="primary grow" onclick="openFinish('${c.id}')">จบเกม</button>
+        <button class="ghost" onclick="cancelMatch('${c.id}')">ยกเลิก</button></div>
+      </div>`;
+    }
+    return `<div class="card court">
+      <div class="row between"><h3>${esc(c.name)}</h3><span class="pill done">ว่าง</span></div>
+      <div class="row" style="margin-top:8px">
+        <button class="primary grow" onclick="openPick('${c.id}')" ${w.length<4?'disabled':''}>จัดผู้เล่นลงคอร์ท${w.length<4?' (ต้องมีคนรอ 4 คน)':''}</button>
+        <button class="ghost" onclick="removeCourt('${c.id}')">เอาออก</button></div>
+    </div>`;
+  }).join('');
+  return html;
+}
+
+function viewPlayers(){
+  const s=state.session;
+  const ids = attList();
+  const grp = st=>ids.filter(id=>att(id).status===st);
+  const playing=grp('playing'), done=grp('done'), w=waiting();
+  const row = (id, i)=>{
+    const p=player(id), a=att(id);
+    const st = a.status==='waiting' ? `<span class="pill wait">${i!==undefined?'คิว #'+(i+1):'รอคิว'}</span>`
+      : a.status==='playing' ? `<span class="pill play">เล่นอยู่</span>` : `<span class="pill done">เลิกแล้ว</span>`;
+    return `<div class="prow row" onclick="openPlayerDetail('${id}')">
+      <div class="grow"><span class="pname">${esc(p.name)}</span> ${lvTag(p)}${p.serious?' <span class="lv" title="สายจริงจัง">🔥</span>':''}
+        <div class="pmeta">${a.matches} เกม · ยอด <span class="num">${money(billOf(id))}</span>${a.paid?' · จ่ายแล้ว ✓':''}</div></div>
+      ${st}</div>`;
+  };
+  return `<button class="primary" style="width:100%; padding:14px; font-size:17px; margin-bottom:14px" onclick="openCheckin()">+ เช็คอินผู้เล่น</button>
+    ${w.length?`<div class="secttl">รอคิว (${w.length}) — เรียงตามคิว</div><div class="plist">${w.map((id,i)=>row(id,i)).join('')}</div>`:''}
+    ${playing.length?`<div class="secttl">กำลังเล่น (${playing.length})</div><div class="plist">${playing.map(id=>row(id)).join('')}</div>`:''}
+    ${done.length?`<div class="secttl">เลิกเล่นแล้ว (${done.length})</div><div class="plist">${done.map(id=>row(id)).join('')}</div>`:''}
+    ${!ids.length?`<div class="empty">ยังไม่มีผู้เล่น — เช็คอินได้เลยเมื่อมีคนมาถึง</div>`:''}`;
+}
+
+function viewMoney(){
+  const ids = attList().sort((a,b)=> (att(a).paid?1:0)-(att(b).paid?1:0) || billOf(b)-billOf(a));
+  const matchesTotal = state.session.log.length;
+  return `<div class="statgrid">
+      <div class="stat"><div class="lbl">เก็บแล้ว</div><div class="num money-paid">${money(collectedTotal())}</div></div>
+      <div class="stat"><div class="lbl">ค้างจ่าย</div><div class="num money-owed">${money(outstandingTotal())}</div></div>
+      <div class="stat"><div class="lbl">เกมทั้งหมด</div><div class="num">${matchesTotal}</div></div>
+      <div class="stat"><div class="lbl">อัตราเก็บ</div><div class="num" style="font-size:15px">${money(state.settings.entryFee)} + ${money(state.settings.matchFee)}/เกม</div></div>
+    </div>
+    <div class="plist">${ids.map(id=>{
+      const p=player(id), a=att(id);
+      return `<div class="prow row">
+        <div class="grow"><span class="pname">${esc(p.name)}</span>
+          <div class="pmeta">แรกเข้า ${money(state.settings.entryFee)} + ${a.matches+(a.extra||0)} × ${money(state.settings.matchFee)}</div></div>
+        <div class="num" style="font-size:17px; font-weight:700">${money(billOf(id))}</div>
+        <button class="${a.paid?'':'primary'}" onclick="togglePaid('${id}')">${a.paid?'จ่ายแล้ว ✓':'เก็บเงิน'}</button>
+      </div>`;}).join('')}</div>
+    ${!ids.length?`<div class="empty">ยังไม่มีผู้เล่น</div>`:''}
+    <div style="margin-top:18px"><button class="danger" style="width:100%; padding:13px" onclick="confirmEndSession()">ปิดก๊วน</button></div>`;
+}
+
+function viewSetup(){
+  return `<div class="card"><h3>อัตราเก็บเงิน</h3>
+      <label>ค่าแรกเข้า (${BAHT})</label><input type="number" id="set-entry" value="${state.settings.entryFee}" inputmode="numeric">
+      <label>ค่าลูกต่อเกม (${BAHT})</label><input type="number" id="set-match" value="${state.settings.matchFee}" inputmode="numeric">
+      <div style="margin-top:12px"><button class="primary" onclick="saveFees()">บันทึก</button></div>
+      <p class="note" style="margin-bottom:0">แก้อัตราแล้ว ยอดของคนที่ยังไม่จ่ายในก๊วนนี้จะคำนวณใหม่ทั้งหมด</p></div>
+    <div class="card"><h3>รายชื่อขาประจำ (${state.roster.length})</h3>
+      <p class="note">รายชื่อถูกจำไว้ข้ามก๊วน แตะเพื่อแก้มือและความชอบ</p>
+      <div class="plist">${state.roster.slice().sort((a,b)=>a.name.localeCompare(b.name,'th')).map(p=>
+        `<div class="prow row" onclick="openEditPlayer('${p.id}')">
+          <div class="grow"><span class="pname">${esc(p.name)}</span> ${lvTag(p)}${p.serious?' <span class="lv">🔥 สายจริงจัง</span>':''}
+          ${p.partnerId&&player(p.partnerId)?`<div class="pmeta">คู่ประจำ: ${esc(player(p.partnerId).name)}</div>`:''}</div>
+          <span class="note">แก้ไข ›</span></div>`).join('')||'<p class="note">ยังว่าง — ผู้เล่นจะถูกเพิ่มอัตโนมัติตอนเช็คอินครั้งแรก</p>'}</div>
+      <div style="margin-top:12px"><button class="ghost" onclick="openEditPlayer(null)">+ เพิ่มรายชื่อ</button></div></div>
+    <div class="card"><h3>สำรองข้อมูล</h3>
+      <p class="note">ข้อมูลทั้งหมดอยู่ในเบราว์เซอร์ของเครื่องนี้ ควรคัดลอกสำรองไว้บ้าง หรือใช้ย้ายข้อมูลไปเครื่องอื่น</p>
+      <div class="row"><button class="ghost grow" onclick="openBackup()">สำรอง / กู้คืน</button></div></div>
+    ${state.session?`<div class="card"><h3>บันทึกเกม (${state.session.log.length})</h3>
+      ${state.session.log.slice().reverse().map(l=>`<div class="pmeta" style="padding:4px 0; border-bottom:1px solid var(--line)">
+        <b>${esc(l.courtName)}</b> — ${l.a.map(esc).join(' / ')} vs ${l.b.map(esc).join(' / ')}${l.score?` · <span class="num">${esc(l.score)}</span>`:''}</div>`).join('')||'<p class="note">ยังไม่มีเกมที่จบ</p>'}</div>`:''}`;
+}
+
+/* ---------- modals ---------- */
+function openModal(html){ document.getElementById('modal-root').innerHTML =
+  `<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`; }
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+function confirmModal(title, body, actionLabel, fnName){
+  openModal(`<h2>${esc(title)}</h2><p class="note">${body}</p>
+    <div class="mact"><button class="ghost" onclick="closeModal()">กลับ</button>
+    <button class="danger" onclick="${fnName}()">${esc(actionLabel)}</button></div>`);
+}
+
+/* start session */
+function openStartSession(){
+  openModal(`<h2>เปิดก๊วน</h2>
+    <label>จำนวนคอร์ทที่จองไว้</label><input type="number" id="ss-courts" value="4" inputmode="numeric">
+    <label>ค่าแรกเข้า (${BAHT})</label><input type="number" id="ss-entry" value="${state.settings.entryFee}" inputmode="numeric">
+    <label>ค่าลูกต่อเกม (${BAHT})</label><input type="number" id="ss-match" value="${state.settings.matchFee}" inputmode="numeric">
+    <p class="note">เพิ่มหรือลดคอร์ทระหว่างก๊วนได้ตลอด</p>
+    <div class="mact"><button class="ghost" onclick="closeModal()">ยกเลิก</button>
+    <button class="primary" onclick="doStartSession()">เปิดก๊วน</button></div>`);
+}
+function doStartSession(){
+  const c = Math.max(1, parseInt(document.getElementById('ss-courts').value)||1);
+  const e = Math.max(0, parseInt(document.getElementById('ss-entry').value)||0);
+  const m = Math.max(0, parseInt(document.getElementById('ss-match').value)||0);
+  closeModal(); startSession(c,e,m); tab='players'; render();
+}
+
+/* check-in */
+function openCheckin(filter=''){
+  const inSession = new Set(attList());
+  const avail = state.roster.filter(p=>!inSession.has(p.id) &&
+    p.name.toLowerCase().includes(filter.toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name,'th'));
+  openModal(`<h2>เช็คอิน</h2>
+    <input placeholder="ค้นหาชื่อ…" value="${esc(filter)}" oninput="openCheckin(this.value)" id="ci-search" autocomplete="off">
+    <div style="margin:10px 0; max-height:40vh; overflow:auto">
+      ${avail.map(p=>`<div class="pickrow" onclick="checkIn('${p.id}')">
+        <div class="grow"><b>${esc(p.name)}</b> ${lvTag(p)}</div><span class="note">แตะ ›</span></div>`).join('') ||
+        '<p class="note">ไม่พบในรายชื่อ</p>'}
+    </div>
+    <button class="primary" style="width:100%; padding:13px" onclick="openEditPlayer(null, true, document.getElementById('ci-search').value)">+ ผู้เล่นใหม่${filter?': '+esc(filter):''}</button>
+    <div class="mact"><button class="ghost" onclick="closeModal()">ปิด</button></div>`);
+  const inp=document.getElementById('ci-search');
+  inp.focus(); inp.setSelectionRange(filter.length, filter.length);
+}
+function checkIn(pid){
+  const s=state.session;
+  s.att[pid] = {matches:0, status:'waiting', paid:false, order:s.nextOrder++, extra:0};
+  save(); closeModal(); render();
+}
+
+/* player add / edit */
+function openEditPlayer(pid, checkinAfter=false, prefillName=''){
+  const p = pid? player(pid) : {name:prefillName, level:2, partnerId:'', serious:false, note:''};
+  const others = state.roster.filter(o=>o.id!==pid).sort((a,b)=>a.name.localeCompare(b.name,'th'));
+  openModal(`<h2>${pid?'แก้ไขผู้เล่น':'ผู้เล่นใหม่'}</h2>
+    <label>ชื่อ</label><input id="ep-name" value="${esc(p.name)}" autocomplete="off">
+    <label>มือ (ระดับฝีมือ)</label><select id="ep-level">${LEVELS.map((L,i)=>`<option value="${i}" ${i===p.level?'selected':''}>${esc(L.t)}</option>`).join('')}</select>
+    <label>อยากจับคู่กับ</label><select id="ep-partner"><option value="">— ไม่ระบุ —</option>
+      ${others.map(o=>`<option value="${o.id}" ${o.id===p.partnerId?'selected':''}>${esc(o.name)}</option>`).join('')}</select>
+    <div class="switch"><input type="checkbox" id="ep-serious" ${p.serious?'checked':''}><label for="ep-serious" style="margin:0">สายจริงจัง (จัดเกมให้เจอมือใกล้เคียงกัน)</label></div>
+    <label>โน้ต</label><input id="ep-note" value="${esc(p.note||'')}" placeholder="เช่น ถนัดซ้าย เข่าไม่ดี" autocomplete="off">
+    <div class="mact">
+      ${pid?`<button class="danger" onclick="deletePlayer('${pid}')">ลบ</button>`:''}
+      <button class="ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="primary" onclick="savePlayer(${pid?`'${pid}'`:'null'}, ${checkinAfter})">บันทึก</button></div>`);
+}
+function savePlayer(pid, checkinAfter){
+  const name = document.getElementById('ep-name').value.trim();
+  if(!name) return;
+  const data = {
+    name, level: parseInt(document.getElementById('ep-level').value),
+    partnerId: document.getElementById('ep-partner').value || '',
+    serious: document.getElementById('ep-serious').checked,
+    note: document.getElementById('ep-note').value.trim()
+  };
+  if(pid){ Object.assign(player(pid), data); }
+  else { const p = {id:uid(), ...data}; state.roster.push(p); pid = p.id; }
+  save(); closeModal();
+  if(checkinAfter && state.session && !att(pid)) checkIn(pid);
+  render();
+}
+function deletePlayer(pid){
+  if(state.session && att(pid)){ closeModal(); return; }
+  state.roster = state.roster.filter(p=>p.id!==pid);
+  state.roster.forEach(p=>{ if(p.partnerId===pid) p.partnerId=''; });
+  save(); closeModal(); render();
+}
+
+/* player detail (in session) */
+function openPlayerDetail(pid){
+  const p=player(pid), a=att(pid);
+  openModal(`<h2>${esc(p.name)} ${lvTag(p)}</h2>
+    <div class="pmeta">${a.status==='playing'?'กำลังเล่นอยู่ในคอร์ท':a.status==='waiting'?'รอคิวอยู่':'เลิกเล่นแล้ว'}${p.note?' · '+esc(p.note):''}</div>
+    <div class="statgrid" style="margin-top:14px">
+      <div class="stat"><div class="lbl">เกม</div>
+        <div class="row"><button class="ghost" onclick="adjMatches('${pid}',-1)">−</button>
+        <div class="num" style="font-size:22px; font-weight:600">${a.matches+(a.extra||0)}</div>
+        <button class="ghost" onclick="adjMatches('${pid}',1)">+</button></div></div>
+      <div class="stat"><div class="lbl">ยอดจ่าย</div><div class="num">${money(billOf(pid))}</div>
+        <div class="pmeta">${money(state.settings.entryFee)} + ${a.matches+(a.extra||0)}×${money(state.settings.matchFee)}</div></div>
+    </div>
+    <div class="mact">
+      ${a.status==='waiting'?`<button onclick="markDone('${pid}')">เลิกเล่น</button>`:''}
+      ${a.status==='done'?`<button onclick="resumePlaying('${pid}')">กลับมาเล่นต่อ</button>`:''}
+      <button class="${a.paid?'ghost':'primary'}" onclick="togglePaid('${pid}'); openPlayerDetail('${pid}')">${a.paid?'ยกเลิกจ่ายแล้ว':'รับเงิน '+money(billOf(pid))}</button>
+    </div>
+    <div class="mact"><button class="ghost" onclick="closeModal(); openEditPlayer('${pid}')">แก้มือ / ความชอบ</button>
+    <button class="ghost" onclick="closeModal()">ปิด</button></div>
+    ${a.status==='waiting'?`<div style="margin-top:10px"><button class="danger" style="width:100%" onclick="removeFromSession('${pid}')">เอาออกจากก๊วน (ไม่คิดเงิน)</button></div>`:''}`);
+}
+function adjMatches(pid,d){
+  const a=att(pid); a.extra=(a.extra||0)+d;
+  if(a.matches+a.extra<0) a.extra=-a.matches;
+  save(); openPlayerDetail(pid); renderHeader();
+}
+function markDone(pid){ att(pid).status='done'; save(); openPlayerDetail(pid); render(); }
+function resumePlaying(pid){ const a=att(pid); a.status='waiting'; a.order=state.session.nextOrder++; save(); closeModal(); render(); }
+function togglePaid(pid){ att(pid).paid=!att(pid).paid; save(); render(); }
+function removeFromSession(pid){ delete state.session.att[pid]; save(); closeModal(); render(); }
+
+/* fill court */
+let pick = {courtId:null, sel:[]};
+function openPick(courtId, keepSel=false){
+  const w = waiting();
+  if(!keepSel){ pick = {courtId, sel: suggestFour() || w.slice(0,4)}; }
+  pick.courtId = courtId;
+  const court = state.session.courts.find(c=>c.id===courtId);
+  const selInfo = pick.sel.length===4 ? bestSplit(pick.sel) : null;
+  openModal(`<h2>${esc(court.name)} — เลือก 4 คน</h2>
+    <p class="note">ระบบจัดให้ตามคิว มือ และความชอบแล้ว แตะรายชื่อเพื่อแก้เอง</p>
+    ${selInfo?`<div class="teams">
+      <div class="team">${selInfo.a.map(id=>`<div class="p">${esc(player(id).name)} ${lvTag(player(id))}</div>`).join('')}</div>
+      <div class="vs">VS</div>
+      <div class="team">${selInfo.b.map(id=>`<div class="p">${esc(player(id).name)} ${lvTag(player(id))}</div>`).join('')}</div>
+    </div>`:`<p class="note">เลือกอีก ${4-pick.sel.length} คน</p>`}
+    <div style="max-height:34vh; overflow:auto; margin:8px 0">
+      ${w.map((id,i)=>{const p=player(id); const on=pick.sel.includes(id);
+        return `<div class="pickrow" onclick="togglePickSel('${id}')">
+          <input type="checkbox" ${on?'checked':''} tabindex="-1">
+          <div class="grow"><b>${esc(p.name)}</b> ${lvTag(p)}${p.serious?' 🔥':''}
+            <span class="pmeta">· คิว #${i+1} · เล่นแล้ว ${att(id).matches} เกม</span></div></div>`;}).join('')}
+    </div>
+    <div class="mact"><button class="ghost" onclick="openPick('${courtId}')">↻ จัดใหม่</button>
+      <button class="ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="primary" onclick="startMatch()" ${pick.sel.length===4?'':'disabled'}>เริ่มเกม</button></div>`);
+}
+function togglePickSel(id){
+  if(pick.sel.includes(id)) pick.sel = pick.sel.filter(x=>x!==id);
+  else if(pick.sel.length<4) pick.sel.push(id);
+  openPick(pick.courtId, true);
+}
+function startMatch(){
+  if(pick.sel.length!==4) return;
+  const court = state.session.courts.find(c=>c.id===pick.courtId);
+  const split = bestSplit(pick.sel);
+  court.match = {a:split.a, b:split.b, startedAt:new Date().toISOString()};
+  pick.sel.forEach(id=>att(id).status='playing');
+  save(); closeModal(); tab='courts'; render();
+}
+function cancelMatch(courtId){
+  const c = state.session.courts.find(x=>x.id===courtId);
+  if(!c.match) return;
+  [...c.match.a, ...c.match.b].forEach(id=>{ if(att(id)) att(id).status='waiting'; });
+  c.match=null; save(); render();
+}
+
+/* finish match */
+function openFinish(courtId){
+  const c = state.session.courts.find(x=>x.id===courtId);
+  const names = ids=>ids.map(id=>esc(player(id).name)).join(' / ');
+  openModal(`<h2>จบเกม — ${esc(c.name)}</h2>
+    <div class="teams"><div class="team"><div class="p">${names(c.match.a)}</div></div><div class="vs">VS</div>
+    <div class="team"><div class="p">${names(c.match.b)}</div></div></div>
+    <label>ผลคะแนน (ไม่ใส่ก็ได้ เช่น 21-18, 19-21, 21-15)</label>
+    <input id="fin-score" placeholder="เว้นว่างได้" autocomplete="off">
+    <div class="mact"><button class="ghost" onclick="closeModal()">กลับ</button>
+    <button class="primary" onclick="doFinish('${courtId}')">จบเกม · ทุกคน +1 เกม</button></div>`);
+}
+function doFinish(courtId){
+  const s=state.session, c=s.courts.find(x=>x.id===courtId);
+  const score = document.getElementById('fin-score').value.trim();
+  s.log.push({courtName:c.name, a:c.match.a.map(id=>player(id).name), b:c.match.b.map(id=>player(id).name),
+    score, endedAt:new Date().toISOString()});
+  [...c.match.a, ...c.match.b].forEach(id=>{
+    const a=att(id); if(!a) return;
+    a.matches++; a.status='waiting'; a.order=s.nextOrder++;
+  });
+  c.match=null; save(); closeModal(); render();
+}
+
+/* courts */
+function addCourt(){
+  const s=state.session;
+  s.courts.push({id:uid(), name:'คอร์ท '+(s.courts.length+1), match:null});
+  save(); render();
+}
+function removeCourt(courtId){
+  const s=state.session;
+  if(s.courts.length<=1) return;
+  const c=s.courts.find(x=>x.id===courtId);
+  if(c.match) return;
+  s.courts = s.courts.filter(x=>x.id!==courtId);
+  save(); render();
+}
+
+/* fees */
+function saveFees(){
+  state.settings.entryFee = Math.max(0, parseInt(document.getElementById('set-entry').value)||0);
+  state.settings.matchFee = Math.max(0, parseInt(document.getElementById('set-match').value)||0);
+  save(); render();
+}
+
+/* end session */
+function confirmEndSession(){
+  const unpaid = attList().filter(id=>!att(id).paid).length;
+  const playing = attList().filter(id=>att(id).status==='playing').length;
+  confirmModal('ปิดก๊วน?',
+    `${playing?`<b class="money-owed">ยังมี ${playing} คนอยู่ในคอร์ท</b> `:''}` +
+    `${unpaid?`<b class="money-owed">ยังมี ${unpaid} คนไม่จ่าย (${money(outstandingTotal())})</b> `:''}` +
+    `ระบบจะเก็บสรุปยอดไว้ และรายชื่อขาประจำยังอยู่ครบสำหรับครั้งหน้า`,
+    'ปิดก๊วน', 'doEndSession');
+}
+function doEndSession(){
+  const s=state.session;
+  state.history.push({
+    date: new Date(s.startedAt).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}),
+    players: attList().length, matches: s.log.length,
+    collected: collectedTotal(), outstanding: outstandingTotal()
+  });
+  state.session=null; save(); closeModal(); tab='courts'; render();
+}
+
+/* backup */
+function openBackup(){
+  openModal(`<h2>สำรองข้อมูล</h2>
+    <label>ข้อมูลของคุณ (คัดลอกไปเก็บไว้ที่ปลอดภัย)</label>
+    <textarea id="bk-out" rows="5" readonly onclick="this.select()">${esc(JSON.stringify(state))}</textarea>
+    <div class="row" style="margin-top:8px"><button class="ghost grow" onclick="copyBackup()">คัดลอก</button></div>
+    <label>กู้คืน — วางข้อมูลสำรองตรงนี้</label>
+    <textarea id="bk-in" rows="3" placeholder="วางข้อมูลสำรอง (JSON)…"></textarea>
+    <div class="mact"><button class="ghost" onclick="closeModal()">ปิด</button>
+    <button class="danger" onclick="importBackup()">กู้คืน (ทับข้อมูลเดิมทั้งหมด)</button></div>`);
+}
+function copyBackup(){
+  const t=document.getElementById('bk-out'); t.select();
+  try{ navigator.clipboard.writeText(t.value); }catch(e){ try{ document.execCommand('copy'); }catch(e2){} }
+}
+function importBackup(){
+  try{
+    const data = JSON.parse(document.getElementById('bk-in').value);
+    if(!data.roster || !data.settings) throw new Error('bad');
+    state = data; save(); closeModal(); render();
+  }catch(e){ document.getElementById('bk-in').placeholder='ข้อมูลไม่ถูกต้อง — ลองเช็คข้อความที่วางอีกครั้ง'; }
+}
+
+/* keep court timers fresh */
+setInterval(()=>{ if(tab==='courts' && state.session && !document.querySelector('.modal-bg')) render(); }, 30000);
+
+render();
+</script>
